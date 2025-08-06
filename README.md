@@ -13,7 +13,7 @@ A powerful Streamlit application that extracts transcripts from YouTube videos a
 
 ## Live Demo
 
-🚀 **Deployed on Streamlit Cloud**: [Your App URL Here]
+🚀 **Deployed on Streamlit Cloud**: [not yet]
 
 ## Installation
 

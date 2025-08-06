@@ -1,5 +1,3 @@
-from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 import re
 import time
 import requests
@@ -76,7 +74,6 @@ def get_transcript(video_url):
         # Try multiple methods (yt-dlp is most reliable)
         methods = [
             ("yt-dlp Method", get_transcript_ytdlp),
-            ("YouTube Transcript API", get_transcript_youtube_api),
             ("Direct API Method", get_transcript_direct_api),
             ("Web Scraping Method", get_transcript_web_scraping)
         ]
@@ -178,71 +175,6 @@ def parse_vtt_content(vtt_content):
             
     except Exception as e:
         return f"❌ VTT parsing error: {str(e)}"
-
-def get_transcript_youtube_api(video_id, video_url):
-    """Original YouTube Transcript API method with retries"""
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            print(f"  Attempt {attempt + 1}/{max_retries}")
-            
-            # First try: Get English transcript
-            try:
-                transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=["en"])
-                print("  ✅ English transcript found")
-                break
-            except NoTranscriptFound:
-                print("  ⚠️ English transcript not found, trying any available language")
-                
-                # Second try: Get any available transcript
-                try:
-                    transcript = YouTubeTranscriptApi.get_transcript(video_id)
-                    print("  ✅ Transcript found in another language")
-                    break
-                except NoTranscriptFound:
-                    if attempt == max_retries - 1:
-                        return "❌ No transcript available for this video."
-                    print(f"  Retrying... (attempt {attempt + 1})")
-                    time.sleep(1)
-                    continue
-                except TranscriptsDisabled:
-                    return "❌ Transcripts are disabled for this video by the creator."
-                except VideoUnavailable:
-                    return "❌ Video is unavailable or private."
-                except Exception as e:
-                    if "no element found" in str(e).lower():
-                        print(f"  XML parsing error on attempt {attempt + 1}, retrying...")
-                        time.sleep(2)
-                        continue
-                    else:
-                        raise e
-                        
-        except TranscriptsDisabled:
-            return "❌ Transcripts are disabled for this video by the creator."
-        except VideoUnavailable:
-            return "❌ Video is unavailable or private."
-        except Exception as e:
-            if "no element found" in str(e).lower():
-                print(f"  XML parsing error on attempt {attempt + 1}, retrying...")
-                if attempt < max_retries - 1:
-                    time.sleep(2)
-                    continue
-                else:
-                    return "❌ Failed due to network issues."
-            else:
-                raise e
-    
-    # If we get here, we should have a transcript
-    if 'transcript' not in locals():
-        return "❌ Failed to fetch transcript after multiple attempts."
-
-    # Join transcript entries
-    full_transcript = "\n".join([entry["text"] for entry in transcript])
-    
-    if not full_transcript.strip():
-        return "❌ Transcript is empty."
-    
-    return full_transcript
 
 def get_transcript_direct_api(video_id, video_url):
     """Direct API method using YouTube's internal API"""

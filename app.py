@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from utils.youtube_utils import get_transcript, test_video_accessibility, clean_transcript
+from utils.youtube_utils import get_transcript, clean_transcript
 from utils.summarizer import summarize_with_api
 from fpdf import FPDF
 from docx import Document
